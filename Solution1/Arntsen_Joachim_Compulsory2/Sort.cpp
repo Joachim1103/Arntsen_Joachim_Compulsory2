@@ -1,5 +1,8 @@
 #include <iostream>
+#include <chrono>
+#include <vector>
 using namespace std;
+using namespace std::chrono;
 
 int QuickSort_Partition(int Array[], int l, int h)
 {
@@ -46,55 +49,75 @@ void InsertionSort(int Array[], int n)
     Array[j + 1] = l;
 }
 
-void Merge(int*, int, int, int);
-void MergeSort(int* Array, int l, int h)
+void Merge(int Array[], int l, int m, int r);
+
+int Min(int x, int y) { return (x < y) ? x : y; }
+
+void MergeSort(int Array[], int n)
 {
-    int m;
-    if (l < h)
+    int curr_size;
+
+    int left_start;
+
+    for (curr_size = 1; curr_size <= n - 1; curr_size = 2 * curr_size)
     {
-        m = (l + h) / 2;
-        MergeSort(Array, l, m);
-        MergeSort(Array, m + 1, h);
-        Merge(Array, l, h, m);
+
+        for (left_start = 0; left_start < n - 1; left_start += 2 * curr_size)
+        {
+
+            int mid = min(left_start + curr_size - 1, n - 1);
+
+            int right_end = min(left_start + 2 * curr_size - 1, n - 1);
+
+            Merge(Array, left_start, mid, right_end);
+        }
     }
 }
 
-void Merge(int* Array, int l, int h, int m)
+void Merge(int Array[], int l, int m, int r)
 {
-    int i, j, k, c[10000];
-    i = l;
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+
+    std::vector<int> L(n1);
+    std::vector<int> R(n2);
+
+    for (i = 0; i < n1; i++)
+        L[i] = Array[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = Array[m + 1 + j];
+
+    i = 0;
+    j = 0;
     k = l;
-    j = m + 1;
-    while (i <= m && j <= h)
+    while (i < n1 && j < n2)
     {
-        if (Array[i] < Array[j])
+        if (L[i] <= R[j])
         {
-            c[k] = Array[i];
-            k++;
+            Array[k] = L[i];
             i++;
         }
         else
         {
-            c[k] = Array[j];
-            k++;
+            Array[k] = R[j];
             j++;
         }
-    }
-    while (i <= m)
-    {
-        c[k] = Array[i];
         k++;
+    }
+
+    while (i < n1)
+    {
+        Array[k] = L[i];
         i++;
-    }
-    while (j <= h)
-    {
-        c[k] = Array[j];
         k++;
-        j++;
     }
-    for (i = l; i < k; i++)
+
+    while (j < n2)
     {
-        Array[i] = c[i];
+        Array[k] = R[j];
+        j++;
+        k++;
     }
 }
 
@@ -127,28 +150,36 @@ void PrintArray(int Array[], int n)
 
 int main()
 {
-    int Array[100];
+    const int n = 100;
 
-    Random(Array, 100, 1, 1000);
+    static int Array[n];
 
-    int n = 100;
+    Random(Array, n, 1, 100000);
 
     cout << "Original Array: \n ";
     PrintArray(Array, n);
 
+    auto start = high_resolution_clock::now();
+
     //Quick Sort Algorithm Using Recursive Implementation
-    QuickSort(Array, 0, n - 1);
-    
+    QuickSort(Array, 0, n - 1); 
+
 
     //Insertion Sort Algorithm Using Recursive Implementation 
-    InsertionSort(Array, n);
+    InsertionSort(Array, n); 
 
 
     //Merge Sort Algorithm Using Iterative Implementation 
-    MergeSort(Array, 0, n - 1);
+    MergeSort(Array, n);
+
+    auto stop = high_resolution_clock::now();
 
     cout << "\n\nSorted Array: \n ";
     PrintArray(Array, n);
+
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    cout << "\n\nTime taken : " << duration.count() << " microseconds" << endl;
 
     return 0;
 }
